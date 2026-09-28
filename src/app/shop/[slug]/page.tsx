@@ -66,15 +66,36 @@ export default function StorefrontPage() {
     return matchSearch && matchCat;
   });
 
-  const handleOrder = () => {
+  const handleOrder = async () => {
     if (!checkoutForm.name || !checkoutForm.phone) { alert("Ingresá tu nombre y teléfono"); return; }
-    const itemsText = cart.map(i => `• ${i.product.name} x${i.quantity} = ${formatARS(parseFloat(i.product.salePrice) * i.quantity)}`).join("\n");
-    const msg = `¡Hola! Quiero hacer un pedido:\n\n${itemsText}\n\n💰 *Total: ${formatARS(cartTotal)}*\n\n📦 ${checkoutForm.orderType === "delivery" ? `Delivery a: ${checkoutForm.address}` : "Retiro en el local"}\n💳 Pago: ${checkoutForm.paymentMethod === "CASH" ? "Efectivo" : checkoutForm.paymentMethod === "TRANSFER" ? "Transferencia" : "MercadoPago"}\n\n👤 Nombre: ${checkoutForm.name}\n📱 Teléfono: ${checkoutForm.phone}${checkoutForm.notes ? `\n📝 Notas: ${checkoutForm.notes}` : ""}`;
-    const waUrl = generateWhatsAppUrl(store?.whatsappNumber || store?.phone || "", msg);
-    window.open(waUrl, "_blank");
-    setCart([]);
-    setShowCheckout(false);
-    setShowCart(false);
+    try {
+      const res = await fetch(`/api/storefront/${slug}/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: checkoutForm.name,
+          customerPhone: checkoutForm.phone,
+          orderType: checkoutForm.orderType,
+          deliveryAddress: checkoutForm.address,
+          paymentMethod: checkoutForm.paymentMethod,
+          notes: checkoutForm.notes,
+          items: cart.map(i => ({
+            productId: i.product.id,
+            productName: i.product.name,
+            quantity: i.quantity,
+            unitPrice: parseFloat(i.product.salePrice),
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || "Error al crear el pedido"); return; }
+      alert("✅ Pedido enviado! El kiosco te contactará para confirmar.");
+      setCart([]);
+      setShowCheckout(false);
+      setShowCart(false);
+    } catch {
+      alert("Error de conexión. Intentá de nuevo.");
+    }
   };
 
   if (loading) return (

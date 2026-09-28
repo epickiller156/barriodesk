@@ -61,12 +61,21 @@ export default function EditProductPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
+          name: form.name,
+          description: form.description,
+          barcode: form.barcode,
+          sku: form.sku,
+          costPrice: form.costPrice,
+          salePrice: form.salePrice,
+          wholesalePrice: form.wholesalePrice || null,
           stock: parseInt(form.stock) || 0,
           minStock: parseInt(form.minStock) || 5,
+          unit: form.unit,
+          allowFraction: form.allowFraction,
           categoryId: form.categoryId || null,
           supplierId: form.supplierId || null,
           expirationDate: form.expirationDate || null,
+          batchNumber: form.batchNumber || null,
         }),
       });
       if (!res.ok) { const d = await res.json(); alert(d.error); return; }

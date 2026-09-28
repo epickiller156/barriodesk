@@ -24,6 +24,13 @@ interface SaleItem {
   subtotal: string;
 }
 
+interface Customer {
+  id: string;
+  name: string;
+  nickname: string | null;
+  phone: string | null;
+}
+
 interface ReturnItem {
   productId: string;
   quantity: number;
@@ -38,6 +45,7 @@ export default function ReturnsPage() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [saleItems, setSaleItems] = useState<SaleItem[]>([]);
+  const [customer, setCustomer] = useState<Customer | null>(null);
   const [returnItems, setReturnItems] = useState<ReturnItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingItems, setLoadingItems] = useState(false);
@@ -54,12 +62,18 @@ export default function ReturnsPage() {
   const selectSale = async (sale: Sale) => {
     setSelectedSale(sale);
     setSaleItems([]);
+    setCustomer(null);
     setReturnItems([]);
     setLoadingItems(true);
     try {
       const res = await fetch(`/api/sales/${sale.id}`);
       const data = await res.json();
+      if (data.error) {
+        setMessage({ text: data.error, type: "error" });
+        return;
+      }
       setSaleItems(data.items || []);
+      setCustomer(data.customer || null);
       setReturnItems((data.items || []).map((item: SaleItem) => ({
         productId: item.productId,
         quantity: 0,
@@ -184,6 +198,17 @@ export default function ReturnsPage() {
               {formatDateTime(selectedSale.createdAt)} · {paymentMethodLabels[selectedSale.paymentMethod] || selectedSale.paymentMethod}
               {selectedSale.isFiado && <span style={{ color: "#F5A623" }}> · FIADO</span>}
             </div>
+            {customer && (
+              <div style={{ marginTop: "12px", padding: "10px", background: "#F7FAFC", borderRadius: "8px" }}>
+                <div style={{ fontSize: "12px", color: "#718096" }}>Cliente</div>
+                <div style={{ fontWeight: "600", fontSize: "14px" }}>
+                  {customer.nickname || customer.name}
+                </div>
+                {customer.phone && (
+                  <div style={{ fontSize: "13px", color: "#718096" }}>📱 {customer.phone}</div>
+                )}
+              </div>
+            )}
           </div>
 
           {loadingItems ? (
