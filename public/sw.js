@@ -1,4 +1,5 @@
-const CACHE_NAME = "barriodesk-v1";
+const CACHE_VERSION = "v1.0.1";
+const CACHE_NAME = `barriodesk-${CACHE_VERSION}`;
 const STATIC_ASSETS = [
   "/",
   "/dashboard",
@@ -39,7 +40,7 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch: Network first, fallback to cache
+// Fetch: Network first for navigation, stale-while-revalidate for assets
 self.addEventListener("fetch", (event) => {
   const { request } = event;
 
@@ -67,21 +68,55 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Static assets: Cache first, fallback to network
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      return (
-        cached ||
-        fetch(request).then((response) => {
+  // Navigation requests: Network first, fallback to cache
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, clone);
           });
           return response;
         })
-      );
+        .catch(() => {
+          return caches.match(request).then((cached) => {
+            return cached || caches.match("/");
+          });
+        })
+    );
+    return;
+  }
+
+  // Static assets: Stale-while-revalidate
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      const fetchPromise = fetch(request).then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(request, clone);
+        });
+        return response;
+      });
+      return cached || fetchPromise;
     })
   );
+});
+
+// Listen for messages from the client
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+  if (event.data && event.data.type === "CLEAR_CACHES") {
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((name) => caches.delete(name))
+      );
+    }).then(() => {
+      event.source.postMessage({ type: "CACHES_CLEARED" });
+    });
+  }
 });
 
 // Background Sync for offline sales
@@ -92,8 +127,6 @@ self.addEventListener("sync", (event) => {
 });
 
 async function syncPendingSales() {
-  // This would sync pending sales from IndexedDB
-  // Implementation depends on your offline storage strategy
   console.log("Syncing pending sales...");
 }
 
