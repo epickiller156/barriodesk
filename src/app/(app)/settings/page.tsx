@@ -97,9 +97,27 @@ export default function SettingsPage() {
             <button onClick={async () => {
               setSaving(true);
               try {
-                const res = await fetch("/api/auth/me");
-                // We'd need a dedicated PUT /api/store route - for now show placeholder
-                showSuccess("✅ Cambios guardados");
+                const res = await fetch("/api/store", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    name: storeForm.name,
+                    address: storeForm.address,
+                    neighborhood: storeForm.neighborhood,
+                    city: storeForm.city,
+                    province: storeForm.province,
+                    phone: storeForm.phone,
+                    whatsappNumber: storeForm.whatsappNumber,
+                    cuit: storeForm.cuit,
+                    storeType: storeForm.storeType,
+                  }),
+                });
+                const data = await res.json();
+                if (!res.ok) { showSuccess("❌ " + (data.error || "Error al guardar")); return; }
+                setStore(data.store);
+                showSuccess("✅ Cambios guardados correctamente");
+              } catch {
+                showSuccess("❌ Error de conexión");
               } finally { setSaving(false); }
             }} disabled={saving}
               style={{ padding: "14px", background: "#1E3A5F", color: "white", border: "none", borderRadius: "10px", fontSize: "15px", fontWeight: "700", cursor: "pointer", minHeight: "48px" }}>
