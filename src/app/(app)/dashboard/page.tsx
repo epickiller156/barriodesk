@@ -5,6 +5,7 @@ import { formatARS, formatDateLong, getGreeting, getDaysUntil, formatDateTime } 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import PushNotificationButton from "@/components/PushNotificationButton";
 
 interface DashboardData {
   todaySales: { total: number; count: number };
@@ -151,6 +152,11 @@ export default function DashboardPage() {
         <Link href="/fiado" style={{ background: "#F5A623", color: "white", padding: "16px", borderRadius: "12px", textDecoration: "none", display: "flex", alignItems: "center", gap: "10px", fontWeight: "700", fontSize: "15px", minHeight: "56px" }}>
           📋 Ver fiados
         </Link>
+      </div>
+
+      {/* Push Notifications */}
+      <div style={{ marginBottom: "24px" }}>
+        <PushNotificationButton />
       </div>
 
       {/* Weekly chart */}

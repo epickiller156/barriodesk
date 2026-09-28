@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { products, categories } from "@/db/schema";
 import { eq, and, ilike, lte, or, desc, asc } from "drizzle-orm";
 import { z } from "zod";
+import { sendPushToStore, pushTemplates } from "@/lib/push";
 
 const productSchema = z.object({
   name: z.string().min(1),
@@ -110,6 +111,27 @@ export async function POST(req: NextRequest) {
       salePrice: data.salePrice.toString(),
       wholesalePrice: data.wholesalePrice?.toString(),
     }).returning();
+
+    // Enviar notificación push si el producto tiene stock bajo o vencimiento próximo
+    try {
+      const daysUntilExpiration = data.expirationDate
+        ? Math.ceil((new Date(data.expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        : null;
+
+      if (data.stock <= data.minStock) {
+        await sendPushToStore(session.storeId, pushTemplates.lowStock(
+          data.name,
+          data.stock
+        ));
+      } else if (daysUntilExpiration !== null && daysUntilExpiration <= 15) {
+        await sendPushToStore(session.storeId, pushTemplates.expiringProduct(
+          data.name,
+          daysUntilExpiration
+        ));
+      }
+    } catch (pushError) {
+      console.error("Error enviando push:", pushError);
+    }
 
     return NextResponse.json({ product }, { status: 201 });
   } catch (error) {

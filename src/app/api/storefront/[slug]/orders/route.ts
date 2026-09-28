@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { stores, products, orders, stockMovements } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
+import { sendPushToStore, pushTemplates } from "@/lib/push";
 
 const orderSchema = z.object({
   customerName: z.string().min(2),
@@ -71,6 +72,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
       notes: parsed.data.notes || null,
       items: itemsWithStock,
     }).returning();
+
+    // Enviar notificación push de nuevo pedido
+    try {
+      await sendPushToStore(store.id, pushTemplates.newOrder(
+        parsed.data.customerName,
+        `$${total.toFixed(2)}`
+      ));
+    } catch (pushError) {
+      console.error("Error enviando push:", pushError);
+    }
 
     return NextResponse.json({ order, message: "Pedido creado exitosamente" }, { status: 201 });
   } catch (error) {

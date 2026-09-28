@@ -62,9 +62,9 @@ export default function EditProductPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name,
-          description: form.description,
-          barcode: form.barcode,
-          sku: form.sku,
+          description: form.description || null,
+          barcode: form.barcode || null,
+          sku: form.sku || null,
           costPrice: form.costPrice,
           salePrice: form.salePrice,
           wholesalePrice: form.wholesalePrice || null,

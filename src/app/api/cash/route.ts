@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { cashClosings, sales } from "@/db/schema";
 import { eq, and, gte, lte, sum, count, desc } from "drizzle-orm";
 import { z } from "zod";
+import { sendPushToStore, pushTemplates } from "@/lib/push";
 
 const closingSchema = z.object({
   openedAt: z.string(),
@@ -104,6 +105,15 @@ export async function POST(req: NextRequest) {
       notes,
       closedById: session.userId,
     }).returning();
+
+    // Enviar notificación push de cierre de caja
+    try {
+      await sendPushToStore(session.storeId, pushTemplates.cashClosing(
+        `$${totalSales.toFixed(2)}`
+      ));
+    } catch (pushError) {
+      console.error("Error enviando push:", pushError);
+    }
 
     return NextResponse.json({ closing }, { status: 201 });
   } catch (error) {

@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { sales, saleItems, products, customers, fiadoRecords, stockMovements } from "@/db/schema";
 import { eq, and, gte, lte, desc, sum, count } from "drizzle-orm";
 import { z } from "zod";
+import { sendPushToStore, pushTemplates } from "@/lib/push";
 
 const saleItemSchema = z.object({
   productId: z.string(),
@@ -163,6 +164,25 @@ export async function POST(req: NextRequest) {
           updatedAt: new Date(),
         }).where(eq(customers.id, data.customerId));
       }
+    }
+
+    // Enviar notificación push de nueva venta
+    try {
+      const methodLabels: Record<string, string> = {
+        CASH: "Efectivo",
+        MERCADOPAGO_QR: "MercadoPago",
+        TRANSFER: "Transferencia",
+        DEBIT_CARD: "Débito",
+        CREDIT_CARD: "Crédito",
+        FIADO: "Fiado",
+        MIXED: "Mixto",
+      };
+      await sendPushToStore(session.storeId, pushTemplates.newSale(
+        `$${data.total.toFixed(2)}`,
+        methodLabels[data.paymentMethod] || data.paymentMethod
+      ));
+    } catch (pushError) {
+      console.error("Error enviando push:", pushError);
     }
 
     return NextResponse.json({ sale }, { status: 201 });

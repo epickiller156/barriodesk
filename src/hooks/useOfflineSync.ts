@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { storage } from "@/lib/storage";
 
 interface PendingSale {
   id: string;
@@ -31,24 +32,18 @@ export function useOfflineSync() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null);
 
-  // Load pending sales from localStorage
+  // Load pending sales from localStorage de forma segura
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        setPendingSales(JSON.parse(stored));
-      } catch {
-        localStorage.removeItem(STORAGE_KEY);
-      }
-    }
+    const stored = storage.get<PendingSale[]>(STORAGE_KEY, []);
+    setPendingSales(stored);
   }, []);
 
-  // Save to localStorage whenever pendingSales changes
+  // Save to localStorage whenever pendingSales changes de forma segura
   useEffect(() => {
     if (pendingSales.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(pendingSales));
+      storage.set(STORAGE_KEY, pendingSales);
     } else {
-      localStorage.removeItem(STORAGE_KEY);
+      storage.remove(STORAGE_KEY);
     }
   }, [pendingSales]);
 
