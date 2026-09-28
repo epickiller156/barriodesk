@@ -29,6 +29,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/dashboard",   label: "Dashboard",     icon: "📊" },
     { href: "/pos",         label: "Punto de Venta", icon: "🛒" },
     { href: "/inventory",   label: "Inventario",    icon: "📦" },
+    { href: "/returns",     label: "Devoluciones",  icon: "↩️" },
     { href: "/fiado",       label: "Fiado",         icon: "📋" },
     { href: "/cash",        label: "Caja",          icon: "💵" },
     { href: "/purchases",   label: "Compras",       icon: "🚚" },
