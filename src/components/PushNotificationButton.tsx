@@ -86,7 +86,15 @@ export default function PushNotificationButton() {
         setIsSubscribed(true);
         alert("¡Notificaciones activadas!");
       } else {
-        alert("Error al guardar la suscripción");
+        let errorMsg = "Error al guardar la suscripción";
+        try {
+          const errorData = await response.json();
+          console.error("Error del servidor:", errorData);
+          errorMsg = errorData.error || errorData.details || JSON.stringify(errorData);
+        } catch {
+          errorMsg = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        alert(`Error: ${errorMsg}`);
       }
     } catch (error) {
       console.error("Error al suscribirse:", error);

@@ -64,8 +64,20 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Push subscribe error:", error);
+    
+    // Si la tabla no existe, dar un mensaje más claro
+    if (error.message?.includes("relation") && error.message?.includes("does not exist")) {
+      return NextResponse.json(
+        { 
+          error: "La tabla push_subscriptions no existe en la base de datos",
+          details: "Ejecuta el SQL de migración en tu base de datos de producción"
+        },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }
