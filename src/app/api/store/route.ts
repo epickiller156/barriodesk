@@ -15,6 +15,7 @@ const updateStoreSchema = z.object({
   whatsappNumber: z.string().nullable().optional(),
   cuit: z.string().nullable().optional(),
   storeType: z.string().optional(),
+  isStorefrontActive: z.boolean().optional(),
 });
 
 export async function PUT(req: NextRequest) {
@@ -40,6 +41,7 @@ export async function PUT(req: NextRequest) {
     if (parsed.data.whatsappNumber !== undefined) updateData.whatsappNumber = parsed.data.whatsappNumber;
     if (parsed.data.cuit !== undefined) updateData.cuit = parsed.data.cuit;
     if (parsed.data.storeType !== undefined) updateData.storeType = parsed.data.storeType;
+    if (parsed.data.isStorefrontActive !== undefined) updateData.isStorefrontActive = parsed.data.isStorefrontActive;
 
     updateData.updatedAt = new Date();
 

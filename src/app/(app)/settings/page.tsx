@@ -8,6 +8,19 @@ interface StoreData {
   cuit: string | null; storeType: string; isStorefrontActive: boolean;
   slug: string; plan: string;
 }
+
+interface StoreForm {
+  name: string;
+  address: string;
+  neighborhood: string;
+  city: string;
+  province: string;
+  phone: string;
+  whatsappNumber: string;
+  cuit: string;
+  storeType: string;
+  isStorefrontActive: boolean;
+}
 interface UserData { id: string; name: string; email: string; phone: string | null; }
 
 export default function SettingsPage() {
@@ -18,7 +31,10 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState("store");
   const [success, setSuccess] = useState("");
-  const [storeForm, setStoreForm] = useState<Partial<StoreData>>({});
+  const [storeForm, setStoreForm] = useState<StoreForm>({
+    name: "", address: "", neighborhood: "", city: "", province: "",
+    phone: "", whatsappNumber: "", cuit: "", storeType: "kiosco", isStorefrontActive: false,
+  });
   const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
@@ -88,6 +104,26 @@ export default function SettingsPage() {
                 <option value="despensa">Despensa</option>
               </select>
             </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#F7FAFC", borderRadius: "10px" }}>
+              <div>
+                <div style={{ fontWeight: "600", fontSize: "14px" }}>Catálogo online</div>
+                <div style={{ fontSize: "12px", color: "#718096" }}>Permitir que los clientes vean tus productos y hagan pedidos</div>
+              </div>
+              <button
+                onClick={() => setStoreForm(f => ({ ...f, isStorefrontActive: !f.isStorefrontActive }))}
+                style={{
+                  width: "48px", height: "28px", borderRadius: "14px", border: "none", cursor: "pointer",
+                  background: storeForm.isStorefrontActive ? "#2ECC71" : "#CBD5E0",
+                  position: "relative", transition: "all 0.2s",
+                }}
+              >
+                <span style={{
+                  position: "absolute", top: "2px", left: storeForm.isStorefrontActive ? "22px" : "2px",
+                  width: "24px", height: "24px", borderRadius: "50%", background: "white",
+                  transition: "all 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                }} />
+              </button>
+            </div>
             <div style={{ background: "#F7FAFC", borderRadius: "10px", padding: "12px 16px" }}>
               <div style={{ fontSize: "13px", color: "#718096", marginBottom: "4px" }}>URL de tu catálogo online:</div>
               <div style={{ fontWeight: "700", color: "#1E3A5F", wordBreak: "break-all" }}>
@@ -110,6 +146,7 @@ export default function SettingsPage() {
                     whatsappNumber: storeForm.whatsappNumber,
                     cuit: storeForm.cuit,
                     storeType: storeForm.storeType,
+                    isStorefrontActive: storeForm.isStorefrontActive,
                   }),
                 });
                 const data = await res.json();
