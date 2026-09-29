@@ -52,7 +52,14 @@ export default function StorefrontPage() {
     if (product.stock <= 0) return;
     setCart(prev => {
       const existing = prev.find(i => i.product.id === product.id);
-      if (existing) return prev.map(i => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+      if (existing) {
+        // Validar que no exceda el stock disponible
+        if (existing.quantity >= product.stock) {
+          alert(`Solo hay ${product.stock} unidades disponibles de ${product.name}`);
+          return prev;
+        }
+        return prev.map(i => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+      }
       return [...prev, { product, quantity: 1 }];
     });
   };
@@ -68,6 +75,16 @@ export default function StorefrontPage() {
 
   const handleOrder = async () => {
     if (!checkoutForm.name || !checkoutForm.phone) { alert("Ingresá tu nombre y teléfono"); return; }
+    if (cart.length === 0) { alert("El carrito está vacío"); return; }
+    
+    // Validar stock antes de enviar
+    for (const item of cart) {
+      if (item.quantity > item.product.stock) {
+        alert(`No hay suficiente stock de ${item.product.name}. Disponible: ${item.product.stock}`);
+        return;
+      }
+    }
+    
     try {
       const res = await fetch(`/api/storefront/${slug}/orders`, {
         method: "POST",

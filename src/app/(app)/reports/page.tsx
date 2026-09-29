@@ -21,6 +21,8 @@ const dateRanges = [
   { label: "Ayer", value: "yesterday" },
   { label: "Esta semana", value: "week" },
   { label: "Este mes", value: "month" },
+  { label: "Últimos 7 días", value: "last7" },
+  { label: "Últimos 30 días", value: "last30" },
 ];
 
 function getDateRange(range: string): { dateFrom: string; dateTo: string } {
@@ -58,6 +60,22 @@ export default function ReportsPage() {
   };
 
   useEffect(() => { loadData(); }, [dateRange]);
+
+  const exportToCSV = () => {
+    if (!salesData) return;
+    
+    const headers = ["Fecha", "Total", "Transacciones"];
+    const rows = salesData.daily.map(d => [d.date, d.total, d.count]);
+    
+    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `reporte_ventas_${dateRange}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div style={{ padding: "20px", maxWidth: "1100px", margin: "0 auto" }}>

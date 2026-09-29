@@ -67,13 +67,18 @@ export default function CashPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ openedAt, openingCash: parseFloat(openingCash), actualCash: parseFloat(actualCash), notes }),
       });
+      const data = await res.json();
       if (res.ok) {
         setShowCloseForm(false);
         setActualCash("");
         setNotes("");
         loadData();
         alert("✅ Caja cerrada correctamente");
+      } else {
+        alert(data.error || "Error al cerrar la caja");
       }
+    } catch {
+      alert("Error de conexión. Intentá de nuevo.");
     } finally { setClosing(false); }
   };
 

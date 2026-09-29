@@ -89,6 +89,21 @@ export default function OrdersPage() {
     }
   };
 
+  const sendWhatsAppNotification = (order: Order, newStatus: string) => {
+    const statusMessages: Record<string, string> = {
+      CONFIRMED: "✅ Tu pedido ha sido confirmado!",
+      PREPARING: "👨‍🍳 Estamos preparando tu pedido...",
+      READY: "🎉 Tu pedido está listo para retirar!",
+      DELIVERED: "🚀 Tu pedido ha sido entregado. Gracias por tu compra!",
+      CANCELLED: "❌ Tu pedido ha sido cancelado. Contactanos para más información.",
+    };
+    
+    const message = `Hola ${order.customerName}!\n\n${statusMessages[newStatus] || `Tu pedido ha sido actualizado a: ${newStatus}`}\n\nPedido: ${order.items.map(i => `${i.productName} x${i.quantity}`).join(", ")}\nTotal: ${formatARS(order.total)}\n\nGracias por elegirnos! 🙌`;
+    
+    const phone = order.customerPhone.replace(/\D/g, "");
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
+  };
+
   if (loading) {
     return <div style={{ padding: "24px", textAlign: "center" }}>⏳ Cargando pedidos...</div>;
   }

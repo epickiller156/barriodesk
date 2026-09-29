@@ -5,23 +5,29 @@ import { products, priceHistory } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 
+// Helper para convertir strings vacíos a null
+const emptyToNull = z.preprocess(
+  (val) => (val === "" ? null : val),
+  z.string().nullable().optional()
+);
+
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
-  description: z.string().optional(),
-  barcode: z.string().optional(),
-  sku: z.string().optional(),
+  description: emptyToNull,
+  barcode: emptyToNull,
+  sku: emptyToNull,
   costPrice: z.string().optional(),
   salePrice: z.string().optional(),
-  wholesalePrice: z.string().optional(),
+  wholesalePrice: emptyToNull,
   stock: z.number().int().optional(),
   minStock: z.number().int().optional(),
   unit: z.string().optional(),
   allowFraction: z.boolean().optional(),
   isActive: z.boolean().optional(),
-  categoryId: z.string().nullable().optional(),
-  supplierId: z.string().nullable().optional(),
-  expirationDate: z.string().nullable().optional(),
-  batchNumber: z.string().optional(),
+  categoryId: emptyToNull,
+  supplierId: emptyToNull,
+  expirationDate: emptyToNull,
+  batchNumber: emptyToNull,
 });
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

@@ -21,7 +21,7 @@ export default function EditProductPage() {
     costPrice: "", salePrice: "", wholesalePrice: "",
     stock: "0", minStock: "5",
     unit: "unidad", allowFraction: false,
-    categoryId: "", supplierId: "",
+    categoryId: null as string | null, supplierId: null as string | null,
     expirationDate: "", batchNumber: "",
   });
 
