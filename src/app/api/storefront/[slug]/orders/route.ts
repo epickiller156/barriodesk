@@ -59,7 +59,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
       itemsWithStock.push({ ...item, quantity: qty });
     }
 
-    // Create order
+    // Create order (NO descontar stock aquí - se descuenta cuando se entrega)
     const [order] = await db.insert(orders).values({
       storeId: store.id,
       customerName: parsed.data.customerName,
@@ -72,29 +72,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
       notes: parsed.data.notes || null,
       items: itemsWithStock,
     }).returning();
-
-    // Update stock for each item
-    for (const item of itemsWithStock) {
-      const [product] = await db.select().from(products).where(
-        and(eq(products.id, item.productId), eq(products.storeId, store.id))
-      ).limit(1);
-
-      if (product) {
-        const newStock = product.stock - item.quantity;
-        await db.update(products).set({ stock: newStock, updatedAt: new Date() })
-          .where(eq(products.id, item.productId));
-
-        // Register stock movement
-        await db.insert(stockMovements).values({
-          productId: item.productId,
-          type: "SALE",
-          quantity: -item.quantity,
-          previousStock: product.stock,
-          newStock,
-          reason: `Pedido online #${order.id.slice(0, 8)}`,
-        });
-      }
-    }
 
     // Enviar notificación push de nuevo pedido
     try {

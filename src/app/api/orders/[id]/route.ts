@@ -32,8 +32,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 });
     }
 
-    // If confirming (NEW -> CONFIRMED), discount stock
-    if (newStatus === "CONFIRMED" && order.status === "NEW") {
+    // If delivering (READY -> DELIVERED), discount stock
+    if (newStatus === "DELIVERED" && order.status === "READY") {
       const items = order.items as Array<{ productId: string; productName: string; quantity: number; unitPrice: number }>;
       for (const item of items) {
         const [product] = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
@@ -49,34 +49,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             quantity: -qty,
             previousStock: product.stock,
             newStock,
-            reason: `Pedido online #${order.id.slice(0, 8)}`,
+            reason: `Pedido online entregado #${order.id.slice(0, 8)}`,
           });
         }
       }
     }
 
-    // If cancelling (CONFIRMED -> CANCELLED), restore stock
-    if (newStatus === "CANCELLED" && (order.status === "CONFIRMED" || order.status === "PREPARING" || order.status === "READY")) {
-      const items = order.items as Array<{ productId: string; productName: string; quantity: number; unitPrice: number }>;
-      for (const item of items) {
-        const [product] = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
-        if (product) {
-          const qty = Math.ceil(item.quantity);
-          const newStock = product.stock + qty;
-          await db.update(products).set({ stock: newStock, updatedAt: new Date() })
-            .where(eq(products.id, item.productId));
-
-          await db.insert(stockMovements).values({
-            productId: item.productId,
-            type: "RETURN",
-            quantity: qty,
-            previousStock: product.stock,
-            newStock,
-            reason: `Cancelación pedido online #${order.id.slice(0, 8)}`,
-          });
-        }
-      }
-    }
+    // If cancelling before delivery (NEW/CONFIRMED/PREPARING/READY -> CANCELLED), no stock to restore
+    // because stock was only discounted on delivery
 
     // Update order status
     const [updatedOrder] = await db.update(orders).set({
