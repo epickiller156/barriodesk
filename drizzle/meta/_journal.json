@@ -15,6 +15,13 @@
       "when": 1790634161384,
       "tag": "0001_marvelous_scourge",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790656344108,
+      "tag": "0002_fine_tiger_shark",
+      "breakpoints": true
     }
   ]
 }

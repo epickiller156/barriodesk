@@ -21,6 +21,23 @@ const updateStoreSchema = z.object({
   deliveryMessage: z.string().nullable().optional(),
 });
 
+export async function GET() {
+  try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    const [store] = await db.select().from(stores).where(eq(stores.id, session.storeId)).limit(1);
+    const [settings] = await db.select().from(storeSettings).where(eq(storeSettings.storeId, session.storeId)).limit(1);
+
+    return NextResponse.json({ store, settings });
+  } catch (error) {
+    console.error("Get store error:", error);
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+  }
+}
+
 export async function PUT(req: NextRequest) {
   try {
     const session = await getSession();
