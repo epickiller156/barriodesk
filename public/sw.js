@@ -128,6 +128,62 @@ self.addEventListener("sync", (event) => {
 
 async function syncPendingSales() {
   console.log("Syncing pending sales...");
+  
+  // Obtener ventas pendientes del localStorage
+  const pendingSales = JSON.parse(localStorage.getItem("barriodesk_pending_sales") || "[]");
+  
+  if (pendingSales.length === 0) {
+    console.log("No hay ventas pendientes para sincronizar");
+    return;
+  }
+  
+  console.log(`Sincronizando ${pendingSales.length} ventas pendientes...`);
+  
+  let synced = 0;
+  let failed = 0;
+  const failedSales = [];
+  
+  for (const sale of pendingSales) {
+    try {
+      const response = await fetch("/api/sales", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sale),
+      });
+      
+      if (response.ok) {
+        synced++;
+        console.log(`Venta ${sale.id} sincronizada correctamente`);
+      } else {
+        failed++;
+        failedSales.push(sale);
+        console.error(`Error sincronizando venta ${sale.id}:`, response.status);
+      }
+    } catch (error) {
+      failed++;
+      failedSales.push(sale);
+      console.error(`Error de red sincronizando venta ${sale.id}:`, error);
+    }
+  }
+  
+  // Actualizar localStorage con las ventas que fallaron
+  if (failedSales.length > 0) {
+    localStorage.setItem("barriodesk_pending_sales", JSON.stringify(failedSales));
+  } else {
+    localStorage.removeItem("barriodesk_pending_sales");
+  }
+  
+  console.log(`Sincronización completada: ${synced} sincronizadas, ${failed} fallidas`);
+  
+  // Notificar al cliente que la sincronización terminó
+  const clients = await self.clients.matchAll();
+  clients.forEach(client => {
+    client.postMessage({
+      type: "SYNC_COMPLETE",
+      synced,
+      failed,
+    });
+  });
 }
 
 // Push notifications

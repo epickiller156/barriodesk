@@ -45,7 +45,9 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const parsed = customerSchema.safeParse(body);
-    if (!parsed.success) return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Datos inválidos", details: parsed.error.flatten() }, { status: 400 });
+    }
 
     const [customer] = await db.insert(customers).values({
       ...parsed.data,
@@ -54,6 +56,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ customer }, { status: 201 });
   } catch (error) {
+    console.error("Customers POST error:", error);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }

@@ -80,15 +80,18 @@ export async function GET() {
       and(eq(products.storeId, storeId), eq(products.isActive, true), lte(products.expirationDate, expirationDate))
     ).orderBy(products.expirationDate).limit(5);
 
-    // Total fiado outstanding
+    // Total fiado outstanding (filtrado por storeId a través de la relación con sales)
     const totalFiado = await db.select({
       total: sum(fiadoRecords.remainingAmount),
       count: count(),
-    }).from(fiadoRecords).where(
-      and(
-        eq(fiadoRecords.status, "PENDING")
-      )
-    );
+    }).from(fiadoRecords)
+      .innerJoin(sales, eq(fiadoRecords.saleId, sales.id))
+      .where(
+        and(
+          eq(sales.storeId, storeId),
+          eq(fiadoRecords.status, "PENDING")
+        )
+      );
 
     // Weekly sales (last 7 days)
     const weeklySalesData = [];

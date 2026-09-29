@@ -55,7 +55,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const body = await req.json();
     const parsed = updateSchema.safeParse(body);
-    if (!parsed.success) return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Datos inválidos", details: parsed.error.flatten() }, { status: 400 });
+    }
 
     const data = parsed.data;
 
@@ -78,7 +80,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     return NextResponse.json({ product: updated });
   } catch (error) {
-    console.error(error);
+    console.error("Products PUT error:", error);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }
@@ -89,11 +91,17 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     if (!session) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     const { id } = await params;
 
+    const [existing] = await db.select().from(products)
+      .where(and(eq(products.id, id), eq(products.storeId, session.storeId)))
+      .limit(1);
+    if (!existing) return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
+
     await db.update(products).set({ isActive: false, updatedAt: new Date() })
       .where(and(eq(products.id, id), eq(products.storeId, session.storeId)));
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Products DELETE error:", error);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }
