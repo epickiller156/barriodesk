@@ -401,6 +401,9 @@ export default function POSPage() {
                     </div>
                     <div style={{ fontSize: "12px", color: "#1A202C", fontWeight: "600", marginBottom: "4px", lineHeight: "1.3", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{product.name}</div>
                     <div style={{ fontSize: "15px", fontWeight: "800", color: "#1E3A5F" }}>{formatARS(product.salePrice)}</div>
+                    <div style={{ fontSize: "11px", fontWeight: "700", color: isOutOfStock ? "#E74C3C" : isLowStock ? "#F39C12" : "#2ECC71", marginTop: "4px" }}>
+                      {isOutOfStock ? "Sin stock" : `Stock: ${product.stock}`}
+                    </div>
                   </button>
                 );
               })}

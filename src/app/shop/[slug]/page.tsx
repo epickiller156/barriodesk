@@ -188,7 +188,10 @@ export default function StorefrontPage() {
                   </div>
                   <div style={{ padding: "10px" }}>
                     <div style={{ fontSize: "13px", fontWeight: "600", color: "#1A202C", marginBottom: "4px", lineHeight: "1.3", minHeight: "32px" }}>{p.name}</div>
-                    <div style={{ fontSize: "16px", fontWeight: "800", color: "#1E3A5F", marginBottom: "8px" }}>{formatARS(p.salePrice)}</div>
+                    <div style={{ fontSize: "16px", fontWeight: "800", color: "#1E3A5F", marginBottom: "4px" }}>{formatARS(p.salePrice)}</div>
+                    <div style={{ fontSize: "12px", fontWeight: "700", color: outOfStock ? "#E74C3C" : p.stock <= 5 ? "#F39C12" : "#2ECC71", marginBottom: "8px" }}>
+                      {outOfStock ? "Sin stock" : `Stock: ${p.stock}`}
+                    </div>
                     {outOfStock ? (
                       <div style={{ width: "100%", padding: "8px", background: "#F7FAFC", color: "#A0AEC0", textAlign: "center", borderRadius: "8px", fontSize: "13px", fontWeight: "600" }}>Sin stock</div>
                     ) : inCart ? (
