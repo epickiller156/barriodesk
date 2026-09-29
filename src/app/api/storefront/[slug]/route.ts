@@ -32,6 +32,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
       minOrderAmount: storeSettings.minOrderAmount,
       estimatedPickupMinutes: storeSettings.estimatedPickupMinutes,
       welcomeMessage: storeSettings.welcomeMessage,
+      deliveryCost: storeSettings.deliveryCost,
+      deliveryMessage: storeSettings.deliveryMessage,
     }).from(storeSettings).where(eq(storeSettings.storeId, store.id)).limit(1);
 
     const storeProducts = await db.select({

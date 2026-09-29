@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { stores } from "@/db/schema";
+import { stores, storeSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getSession } from "@/lib/auth";
 import { z } from "zod";
@@ -16,6 +16,9 @@ const updateStoreSchema = z.object({
   cuit: z.string().nullable().optional(),
   storeType: z.string().optional(),
   isStorefrontActive: z.boolean().optional(),
+  acceptDelivery: z.boolean().optional(),
+  deliveryCost: z.string().nullable().optional(),
+  deliveryMessage: z.string().nullable().optional(),
 });
 
 export async function PUT(req: NextRequest) {
@@ -50,6 +53,20 @@ export async function PUT(req: NextRequest) {
       .set(updateData)
       .where(eq(stores.id, session.storeId))
       .returning();
+
+    // Update delivery settings in storeSettings
+    if (parsed.data.acceptDelivery !== undefined || parsed.data.deliveryCost !== undefined || parsed.data.deliveryMessage !== undefined) {
+      const settingsUpdate: Record<string, unknown> = {};
+      if (parsed.data.acceptDelivery !== undefined) settingsUpdate.acceptDelivery = parsed.data.acceptDelivery;
+      if (parsed.data.deliveryCost !== undefined) settingsUpdate.deliveryCost = parsed.data.deliveryCost || "0";
+      if (parsed.data.deliveryMessage !== undefined) settingsUpdate.deliveryMessage = parsed.data.deliveryMessage || null;
+      settingsUpdate.updatedAt = new Date();
+
+      await db
+        .update(storeSettings)
+        .set(settingsUpdate)
+        .where(eq(storeSettings.storeId, session.storeId));
+    }
 
     return NextResponse.json({
       store: {

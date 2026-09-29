@@ -20,6 +20,9 @@ interface StoreForm {
   cuit: string;
   storeType: string;
   isStorefrontActive: boolean;
+  deliveryEnabled: boolean;
+  deliveryCost: string;
+  deliveryMessage: string;
 }
 interface UserData { id: string; name: string; email: string; phone: string | null; }
 
@@ -34,13 +37,25 @@ export default function SettingsPage() {
   const [storeForm, setStoreForm] = useState<StoreForm>({
     name: "", address: "", neighborhood: "", city: "", province: "",
     phone: "", whatsappNumber: "", cuit: "", storeType: "kiosco", isStorefrontActive: false,
+    deliveryEnabled: false, deliveryCost: "", deliveryMessage: "",
   });
   const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
-    fetch("/api/auth/me").then(r => r.json()).then(d => {
-      if (d.user) { setUser(d.user); }
-      if (d.store) { setStore(d.store); setStoreForm(d.store); }
+    Promise.all([
+      fetch("/api/auth/me").then(r => r.json()),
+      fetch("/api/store").then(r => r.json()),
+    ]).then(([meData, storeData]) => {
+      if (meData.user) { setUser(meData.user); }
+      if (meData.store) { setStore(meData.store); }
+      if (storeData.settings) {
+        setStoreForm(f => ({
+          ...f,
+          deliveryEnabled: storeData.settings.acceptDelivery || false,
+          deliveryCost: storeData.settings.deliveryCost || "",
+          deliveryMessage: storeData.settings.deliveryMessage || "",
+        }));
+      }
       setLoading(false);
     });
   }, []);
@@ -130,6 +145,56 @@ export default function SettingsPage() {
                 {typeof window !== "undefined" ? window.location.origin : ""}/shop/{store.slug}
               </div>
             </div>
+
+            {/* Delivery Configuration */}
+            <div style={{ marginTop: "20px", paddingTop: "20px", borderTop: "1px solid #E2E8F0" }}>
+              <h3 style={{ fontSize: "15px", fontWeight: "700", marginBottom: "12px", color: "#1A202C" }}>🚚 Configuración de Delivery</h3>
+              
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#F7FAFC", borderRadius: "10px", marginBottom: "14px" }}>
+                <div>
+                  <div style={{ fontWeight: "600", fontSize: "14px" }}>Habilitar delivery</div>
+                  <div style={{ fontSize: "12px", color: "#718096" }}>Permitir que los clientes pidan delivery</div>
+                </div>
+                <button
+                  onClick={() => setStoreForm(f => ({ ...f, deliveryEnabled: !f.deliveryEnabled }))}
+                  style={{
+                    width: "48px", height: "28px", borderRadius: "14px", border: "none", cursor: "pointer",
+                    background: storeForm.deliveryEnabled ? "#2ECC71" : "#CBD5E0",
+                    position: "relative", transition: "all 0.2s",
+                  }}
+                >
+                  <span style={{
+                    position: "absolute", top: "2px", left: storeForm.deliveryEnabled ? "22px" : "2px",
+                    width: "24px", height: "24px", borderRadius: "50%", background: "white",
+                    transition: "all 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                  }} />
+                </button>
+              </div>
+
+              {storeForm.deliveryEnabled && (
+                <>
+                  <div style={{ marginBottom: "14px" }}>
+                    <label style={labelStyle}>Costo de delivery</label>
+                    <input
+                      type="number"
+                      style={inputStyle}
+                      value={storeForm.deliveryCost}
+                      onChange={e => setStoreForm(f => ({ ...f, deliveryCost: e.target.value }))}
+                      placeholder="500"
+                    />
+                  </div>
+                  <div style={{ marginBottom: "14px" }}>
+                    <label style={labelStyle}>Mensaje para delivery (opcional)</label>
+                    <textarea
+                      style={{ ...inputStyle, minHeight: "60px", resize: "vertical" }}
+                      value={storeForm.deliveryMessage}
+                      onChange={e => setStoreForm(f => ({ ...f, deliveryMessage: e.target.value }))}
+                      placeholder="Ej: El delivery tarda aproximadamente 30 minutos"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
             <button onClick={async () => {
               setSaving(true);
               try {
@@ -147,6 +212,9 @@ export default function SettingsPage() {
                     cuit: storeForm.cuit,
                     storeType: storeForm.storeType,
                     isStorefrontActive: storeForm.isStorefrontActive,
+                    acceptDelivery: storeForm.deliveryEnabled,
+                    deliveryCost: storeForm.deliveryCost,
+                    deliveryMessage: storeForm.deliveryMessage,
                   }),
                 });
                 const data = await res.json();

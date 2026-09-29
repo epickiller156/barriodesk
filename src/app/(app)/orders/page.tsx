@@ -15,6 +15,7 @@ interface Order {
   customerPhone: string;
   orderType: string;
   deliveryAddress: string | null;
+  deliveryCost: string;
   paymentMethod: string;
   total: string;
   status: "NEW" | "CONFIRMED" | "PREPARING" | "READY" | "DELIVERED" | "CANCELLED";
@@ -89,16 +90,25 @@ export default function OrdersPage() {
     }
   };
 
-  const sendWhatsAppNotification = (order: Order, newStatus: string) => {
-    const statusMessages: Record<string, string> = {
-      CONFIRMED: "✅ Tu pedido ha sido confirmado!",
-      PREPARING: "👨‍🍳 Estamos preparando tu pedido...",
-      READY: "🎉 Tu pedido está listo para retirar!",
-      DELIVERED: "🚀 Tu pedido ha sido entregado. Gracias por tu compra!",
-      CANCELLED: "❌ Tu pedido ha sido cancelado. Contactanos para más información.",
-    };
+  const sendWhatsAppNotification = (order: Order) => {
+    const itemsList = order.items.map(i => `• ${i.productName} x${i.quantity} - ${formatARS(i.unitPrice * i.quantity)}`).join("\n");
+    const deliveryCost = order.orderType === "delivery" && parseFloat(order.deliveryCost) > 0
+      ? `\n🛵 Delivery: ${formatARS(order.deliveryCost)}`
+      : "";
     
-    const message = `Hola ${order.customerName}!\n\n${statusMessages[newStatus] || `Tu pedido ha sido actualizado a: ${newStatus}`}\n\nPedido: ${order.items.map(i => `${i.productName} x${i.quantity}`).join(", ")}\nTotal: ${formatARS(order.total)}\n\nGracias por elegirnos! 🙌`;
+    const message = `Hola ${order.customerName}! 👋
+
+📦 *Pedido #${order.id.slice(0, 8)}*
+
+🛒 *Productos:*
+${itemsList}
+${deliveryCost}
+💰 *Total: ${formatARS(order.total)}*
+
+📍 *Entrega:* ${order.orderType === "delivery" ? "Delivery" : "Retiro en local"}
+${order.deliveryAddress ? `📌 Dirección: ${order.deliveryAddress}` : ""}
+
+¡Gracias por tu compra! 🙌`;
     
     const phone = order.customerPhone.replace(/\D/g, "");
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
@@ -236,11 +246,29 @@ export default function OrdersPage() {
                 <span style={{ fontWeight: "700" }}>{formatARS(item.unitPrice * item.quantity)}</span>
               </div>
             ))}
+            {selectedOrder.orderType === "delivery" && parseFloat(selectedOrder.deliveryCost) > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #F7FAFC" }}>
+                <span style={{ fontSize: "14px" }}>🛵 Delivery</span>
+                <span style={{ fontWeight: "700" }}>{formatARS(selectedOrder.deliveryCost)}</span>
+              </div>
+            )}
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: "12px", fontWeight: "800", fontSize: "16px" }}>
               <span>TOTAL:</span>
               <span style={{ color: "#1E3A5F" }}>{formatARS(selectedOrder.total)}</span>
             </div>
           </div>
+
+          {/* WhatsApp Button */}
+          <button
+            onClick={() => sendWhatsAppNotification(selectedOrder)}
+            style={{
+              width: "100%", padding: "14px", background: "#25D366", color: "white", border: "none",
+              borderRadius: "10px", fontSize: "15px", fontWeight: "700", cursor: "pointer", marginBottom: "16px",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", minHeight: "48px",
+            }}
+          >
+            📱 Enviar detalle por WhatsApp
+          </button>
 
           {selectedOrder.status === "NEW" && (
             <div style={{ display: "flex", gap: "10px" }}>

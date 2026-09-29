@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { stores, products, orders, stockMovements } from "@/db/schema";
+import { stores, products, orders, stockMovements, storeSettings } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { sendPushToStore, pushTemplates } from "@/lib/push";
@@ -40,6 +40,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
 
     // Validate stock and calculate total
     let total = 0;
+    let deliveryCost = 0;
     const itemsWithStock = [];
     for (const item of parsed.data.items) {
       const [product] = await db.select().from(products).where(
@@ -59,6 +60,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
       itemsWithStock.push({ ...item, quantity: qty });
     }
 
+    // Add delivery cost if applicable
+    if (parsed.data.orderType === "delivery") {
+      const [settings] = await db.select().from(storeSettings).where(eq(storeSettings.storeId, store.id)).limit(1);
+      if (settings && settings.acceptDelivery && settings.deliveryCost) {
+        deliveryCost = parseFloat(settings.deliveryCost);
+        total += deliveryCost;
+      }
+    }
+
     // Create order (NO descontar stock aquí - se descuenta cuando se entrega)
     const [order] = await db.insert(orders).values({
       storeId: store.id,
@@ -66,6 +76,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
       customerPhone: parsed.data.customerPhone,
       orderType: parsed.data.orderType,
       deliveryAddress: parsed.data.deliveryAddress || null,
+      deliveryCost: deliveryCost.toString(),
       paymentMethod: parsed.data.paymentMethod,
       total: total.toString(),
       status: "NEW",

@@ -11,6 +11,7 @@ interface StoreSettings {
   acceptCash: boolean; acceptMercadoPago: boolean; acceptTransfer: boolean;
   acceptDelivery: boolean; acceptPickup: boolean;
   minOrderAmount: string | null; estimatedPickupMinutes: number | null; welcomeMessage: string | null;
+  deliveryCost: string | null; deliveryMessage: string | null;
 }
 interface Product {
   id: string; name: string; salePrice: string; imageUrl: string | null; stock: number;
@@ -242,9 +243,17 @@ export default function StorefrontPage() {
                   <span style={{ fontWeight: "700" }}>{formatARS(parseFloat(i.product.salePrice) * i.quantity)}</span>
                 </div>
               ))}
+              {checkoutForm.orderType === "delivery" && settings?.deliveryCost && parseFloat(settings.deliveryCost) > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #E2E8F0" }}>
+                  <span style={{ fontSize: "14px" }}>🛵 Delivery</span>
+                  <span style={{ fontWeight: "700" }}>{formatARS(settings.deliveryCost)}</span>
+                </div>
+              )}
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", fontWeight: "800", fontSize: "16px" }}>
                 <span>TOTAL:</span>
-                <span style={{ color: "#1E3A5F" }}>{formatARS(cartTotal)}</span>
+                <span style={{ color: "#1E3A5F" }}>
+                  {formatARS(cartTotal + (checkoutForm.orderType === "delivery" && settings?.deliveryCost ? parseFloat(settings.deliveryCost) : 0))}
+                </span>
               </div>
             </div>
 
