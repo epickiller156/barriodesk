@@ -107,10 +107,10 @@ export default function StorefrontPage() {
       });
       const data = await res.json();
       if (!res.ok) { alert(data.error || "Error al crear el pedido"); return; }
-      alert("✅ Pedido enviado! El kiosco te contactará para confirmar.");
       setCart([]);
       setShowCheckout(false);
       setShowCart(false);
+      alert("Pedido enviado! En breve te contactaremos por WhatsApp para confirmar.");
     } catch {
       alert("Error de conexión. Intentá de nuevo.");
     }
@@ -272,7 +272,7 @@ export default function StorefrontPage() {
                 <div>
                   <label style={{ display: "block", fontWeight: "600", fontSize: "14px", marginBottom: "6px" }}>Tipo de entrega</label>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                    {[{ v: "pickup", l: "🏪 Retiro en local" }, { v: "delivery", l: "🛵 Delivery" }].map(o => (
+                    {[{ v: "pickup", l: "Retiro en local" }, { v: "delivery", l: "Delivery" }].map(o => (
                       <button key={o.v} type="button" onClick={() => setCheckoutForm(f => ({ ...f, orderType: o.v }))}
                         style={{ padding: "10px", border: `2px solid ${checkoutForm.orderType === o.v ? "#1E3A5F" : "#E2E8F0"}`, borderRadius: "10px", background: checkoutForm.orderType === o.v ? "#EBF4FF" : "white", cursor: "pointer", fontWeight: checkoutForm.orderType === o.v ? "700" : "400", fontSize: "13px", minHeight: "44px" }}>
                         {o.l}
@@ -292,15 +292,15 @@ export default function StorefrontPage() {
                 <label style={{ display: "block", fontWeight: "600", fontSize: "14px", marginBottom: "6px" }}>Método de pago</label>
                 <select value={checkoutForm.paymentMethod} onChange={e => setCheckoutForm(f => ({ ...f, paymentMethod: e.target.value }))}
                   style={{ width: "100%", padding: "10px", border: "2px solid #E2E8F0", borderRadius: "10px", fontSize: "14px" }}>
-                  {settings?.acceptCash && <option value="CASH">💵 Efectivo</option>}
-                  {settings?.acceptMercadoPago && <option value="MERCADOPAGO_QR">📱 MercadoPago</option>}
-                  {settings?.acceptTransfer && <option value="TRANSFER">🏦 Transferencia</option>}
+                  {settings?.acceptCash && <option value="CASH">Efectivo</option>}
+                  {settings?.acceptMercadoPago && <option value="MERCADOPAGO_QR">MercadoPago</option>}
+                  {settings?.acceptTransfer && <option value="TRANSFER">Transferencia</option>}
                 </select>
               </div>
             </div>
             <button onClick={handleOrder}
               style={{ width: "100%", padding: "16px", background: "#25D366", color: "white", border: "none", borderRadius: "12px", fontSize: "16px", fontWeight: "800", cursor: "pointer", minHeight: "56px" }}>
-              📱 Hacer pedido por WhatsApp
+              Realizar pedido
             </button>
           </div>
         </div>

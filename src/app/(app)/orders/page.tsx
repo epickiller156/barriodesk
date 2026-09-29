@@ -91,24 +91,24 @@ export default function OrdersPage() {
   };
 
   const sendWhatsAppNotification = (order: Order) => {
-    const itemsList = order.items.map(i => `• ${i.productName} x${i.quantity} - ${formatARS(i.unitPrice * i.quantity)}`).join("\n");
+    const itemsList = order.items.map(i => `- ${i.productName} x${i.quantity} - ${formatARS(i.unitPrice * i.quantity)}`).join("\n");
     const deliveryCost = order.orderType === "delivery" && parseFloat(order.deliveryCost) > 0
-      ? `\n🛵 Delivery: ${formatARS(order.deliveryCost)}`
+      ? `\nDelivery: ${formatARS(order.deliveryCost)}`
       : "";
     
-    const message = `Hola ${order.customerName}! 👋
+    const message = `Hola ${order.customerName}!
 
-📦 *Pedido #${order.id.slice(0, 8)}*
+Pedido #${order.id.slice(0, 8)}
 
-🛒 *Productos:*
+Productos:
 ${itemsList}
 ${deliveryCost}
-💰 *Total: ${formatARS(order.total)}*
+Total: ${formatARS(order.total)}
 
-📍 *Entrega:* ${order.orderType === "delivery" ? "Delivery" : "Retiro en local"}
-${order.deliveryAddress ? `📌 Dirección: ${order.deliveryAddress}` : ""}
+Entrega: ${order.orderType === "delivery" ? "Delivery" : "Retiro en local"}
+${order.deliveryAddress ? `Direccion: ${order.deliveryAddress}` : ""}
 
-¡Gracias por tu compra! 🙌`;
+Gracias por tu compra!`;
     
     const phone = order.customerPhone.replace(/\D/g, "");
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
