@@ -6,10 +6,7 @@ import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 
 // Helper para convertir strings vacíos a null
-const emptyToNull = z.preprocess(
-  (val) => (val === "" ? null : val),
-  z.string().nullable().optional()
-);
+const emptyToNull = z.union([z.string(), z.null()]).optional().transform((val) => val === "" ? null : val);
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),

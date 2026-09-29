@@ -38,7 +38,7 @@ export default function EditProductPage() {
           costPrice: p.costPrice || "", salePrice: p.salePrice || "", wholesalePrice: p.wholesalePrice || "",
           stock: String(p.stock || 0), minStock: String(p.minStock || 5),
           unit: p.unit || "unidad", allowFraction: p.allowFraction || false,
-          categoryId: p.categoryId || "", supplierId: p.supplierId || "",
+          categoryId: p.categoryId || null, supplierId: p.supplierId || null,
           expirationDate: p.expirationDate ? p.expirationDate.split("T")[0] : "",
           batchNumber: p.batchNumber || "",
         });
@@ -49,7 +49,7 @@ export default function EditProductPage() {
     });
   }, [id]);
 
-  const update = (key: string, value: string | boolean) => setForm(f => ({ ...f, [key]: value }));
+  const update = (key: string, value: string | boolean | null) => setForm(f => ({ ...f, [key]: value }));
   const margin = form.costPrice && form.salePrice ? calculateMargin(parseFloat(form.costPrice), parseFloat(form.salePrice)) : 0;
   const suggestedPrice = form.costPrice ? calculateSuggestedPrice(parseFloat(form.costPrice), parseFloat(targetMargin)) : 0;
 
@@ -110,14 +110,14 @@ export default function EditProductPage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
               <div>
                 <label style={labelStyle}>Categoría</label>
-                <select style={inputStyle} value={form.categoryId} onChange={e => update("categoryId", e.target.value)}>
+                <select style={inputStyle} value={form.categoryId ?? ""} onChange={e => update("categoryId", e.target.value || null)}>
                   <option value="">Sin categoría</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
                 </select>
               </div>
               <div>
                 <label style={labelStyle}>Proveedor</label>
-                <select style={inputStyle} value={form.supplierId} onChange={e => update("supplierId", e.target.value)}>
+                <select style={inputStyle} value={form.supplierId ?? ""} onChange={e => update("supplierId", e.target.value || null)}>
                   <option value="">Sin proveedor</option>
                   {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
