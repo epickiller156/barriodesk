@@ -5,20 +5,23 @@ import { eq } from "drizzle-orm";
 import { getSession } from "@/lib/auth";
 import { z } from "zod";
 
+// Helper para convertir strings vacíos a null
+const emptyToNull = z.union([z.string(), z.null()]).optional().transform((val) => val === "" ? null : val);
+
 const updateStoreSchema = z.object({
   name: z.string().min(2).optional(),
   address: z.string().min(5).optional(),
   neighborhood: z.string().min(2).optional(),
   city: z.string().min(2).optional(),
   province: z.string().min(2).optional(),
-  phone: z.string().nullable().optional(),
-  whatsappNumber: z.string().nullable().optional(),
-  cuit: z.string().nullable().optional(),
+  phone: emptyToNull,
+  whatsappNumber: emptyToNull,
+  cuit: emptyToNull,
   storeType: z.string().optional(),
   isStorefrontActive: z.boolean().optional(),
   acceptDelivery: z.boolean().optional(),
-  deliveryCost: z.string().nullable().optional(),
-  deliveryMessage: z.string().nullable().optional(),
+  deliveryCost: emptyToNull,
+  deliveryMessage: emptyToNull,
 });
 
 export async function GET() {

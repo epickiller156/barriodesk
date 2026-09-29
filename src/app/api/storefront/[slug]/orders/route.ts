@@ -5,13 +5,16 @@ import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { sendPushToStore, pushTemplates } from "@/lib/push";
 
+// Helper para convertir strings vacíos a null
+const emptyToNull = z.union([z.string(), z.null()]).optional().transform((val) => val === "" ? null : val);
+
 const orderSchema = z.object({
   customerName: z.string().min(2),
   customerPhone: z.string().min(8),
   orderType: z.enum(["pickup", "delivery"]).default("pickup"),
-  deliveryAddress: z.string().optional(),
+  deliveryAddress: emptyToNull,
   paymentMethod: z.enum(["CASH", "MERCADOPAGO_QR", "TRANSFER", "DEBIT_CARD", "CREDIT_CARD", "FIADO"]),
-  notes: z.string().optional(),
+  notes: emptyToNull,
   items: z.array(z.object({
     productId: z.string(),
     productName: z.string(),
