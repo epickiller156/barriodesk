@@ -47,7 +47,22 @@ export default function SettingsPage() {
       fetch("/api/store").then(r => r.json()),
     ]).then(([meData, storeData]) => {
       if (meData.user) { setUser(meData.user); }
-      if (meData.store) { setStore(meData.store); }
+      if (meData.store) { 
+        setStore(meData.store); 
+        setStoreForm(f => ({
+          ...f,
+          name: meData.store.name || "",
+          address: meData.store.address || "",
+          neighborhood: meData.store.neighborhood || "",
+          city: meData.store.city || "",
+          province: meData.store.province || "",
+          phone: meData.store.phone || "",
+          whatsappNumber: meData.store.whatsappNumber || "",
+          cuit: meData.store.cuit || "",
+          storeType: meData.store.storeType || "kiosco",
+          isStorefrontActive: meData.store.isStorefrontActive || false,
+        }));
+      }
       if (storeData.settings) {
         setStoreForm(f => ({
           ...f,
@@ -56,6 +71,9 @@ export default function SettingsPage() {
           deliveryMessage: storeData.settings.deliveryMessage || "",
         }));
       }
+      setLoading(false);
+    }).catch(err => {
+      console.error("Error cargando datos:", err);
       setLoading(false);
     });
   }, []);

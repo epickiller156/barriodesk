@@ -6,7 +6,10 @@ import { getSession } from "@/lib/auth";
 import { z } from "zod";
 
 // Helper para convertir strings vacíos a null
-const emptyToNull = z.union([z.string(), z.null()]).optional().transform((val) => val === "" ? null : val);
+const emptyToNull = z.preprocess(
+  (val) => val === "" ? null : val,
+  z.string().nullable().optional()
+);
 
 const updateStoreSchema = z.object({
   name: z.string().min(2).optional(),
