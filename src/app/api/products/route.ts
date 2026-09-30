@@ -22,6 +22,7 @@ const productSchema = z.object({
   supplierId: z.string().optional(),
   expirationDate: z.string().optional(),
   batchNumber: z.string().optional(),
+  imageUrl: z.string().optional(),
 });
 
 export async function GET(req: NextRequest) {

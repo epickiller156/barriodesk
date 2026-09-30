@@ -25,6 +25,7 @@ const updateSchema = z.object({
   supplierId: emptyToNull,
   expirationDate: emptyToNull,
   batchNumber: emptyToNull,
+  imageUrl: emptyToNull,
 });
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
