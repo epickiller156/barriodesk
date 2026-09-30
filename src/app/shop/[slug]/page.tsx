@@ -184,8 +184,8 @@ export default function StorefrontPage() {
               const outOfStock = p.stock <= 0;
               return (
                 <div key={p.id} style={{ background: "white", borderRadius: "12px", overflow: "hidden", border: "1px solid #E2E8F0", boxShadow: "0 1px 4px rgba(0,0,0,0.05)", opacity: outOfStock ? 0.6 : 1 }}>
-                  <div style={{ height: "120px", background: "#F7FAFC", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px", overflow: "hidden" }}>
-                    {p.imageUrl ? <img src={p.imageUrl} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "📦"}
+                  <div style={{ height: "140px", background: "#F7FAFC", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px", overflow: "hidden", padding: "8px" }}>
+                    {p.imageUrl ? <img src={p.imageUrl} alt={p.name} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} /> : "📦"}
                   </div>
                   <div style={{ padding: "10px" }}>
                     <div style={{ fontSize: "13px", fontWeight: "600", color: "#1A202C", marginBottom: "4px", lineHeight: "1.3", minHeight: "32px" }}>{p.name}</div>
