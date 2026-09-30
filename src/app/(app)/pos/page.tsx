@@ -396,8 +396,8 @@ export default function POSPage() {
                     {inCart && <span style={{ position: "absolute", top: "-8px", right: "-8px", background: "#1E3A5F", color: "white", width: "22px", height: "22px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "800" }}>{inCart.quantity}</span>}
                     {isLowStock && !isOutOfStock && <span style={{ position: "absolute", top: "6px", left: "6px", background: "#F39C12", color: "white", fontSize: "9px", fontWeight: "700", padding: "1px 4px", borderRadius: "6px" }}>POCO</span>}
                     {isOutOfStock && <span style={{ position: "absolute", top: "6px", left: "6px", background: "#E74C3C", color: "white", fontSize: "9px", fontWeight: "700", padding: "1px 4px", borderRadius: "6px" }}>SIN STK</span>}
-                    <div style={{ fontSize: "32px", marginBottom: "6px" }}>
-                      {product.imageUrl ? <img src={product.imageUrl} alt={product.name} style={{ width: "48px", height: "48px", objectFit: "cover", borderRadius: "8px" }} /> : "📦"}
+                    <div style={{ width: "48px", height: "48px", marginBottom: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {product.imageUrl ? <img src={product.imageUrl} alt={product.name} style={{ width: "48px", height: "48px", objectFit: "cover", borderRadius: "8px" }} /> : <span style={{ fontSize: "32px" }}>📦</span>}
                     </div>
                     <div style={{ fontSize: "12px", color: "#1A202C", fontWeight: "600", marginBottom: "4px", lineHeight: "1.3", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{product.name}</div>
                     <div style={{ fontSize: "15px", fontWeight: "800", color: "#1E3A5F" }}>{formatARS(product.salePrice)}</div>

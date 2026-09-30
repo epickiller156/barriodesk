@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { formatARS, calculateMargin, calculateSuggestedPrice } from "@/lib/utils";
+import { uploadImage } from "@/lib/cloudinary";
 import Link from "next/link";
 
 interface Category { id: string; name: string; icon: string | null; }
@@ -15,6 +16,8 @@ export default function EditProductPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [targetMargin, setTargetMargin] = useState("30");
   const [form, setForm] = useState({
     name: "", description: "", barcode: "", sku: "",
@@ -23,6 +26,7 @@ export default function EditProductPage() {
     unit: "unidad", allowFraction: false,
     categoryId: null as string | null, supplierId: null as string | null,
     expirationDate: "", batchNumber: "",
+    imageUrl: "",
   });
 
   useEffect(() => {
@@ -41,7 +45,9 @@ export default function EditProductPage() {
           categoryId: p.categoryId || null, supplierId: p.supplierId || null,
           expirationDate: p.expirationDate ? p.expirationDate.split("T")[0] : "",
           batchNumber: p.batchNumber || "",
+          imageUrl: p.imageUrl || "",
         });
+        if (p.imageUrl) setImagePreview(p.imageUrl);
       }
       setCategories(cats.categories || []);
       setSuppliers(sups.suppliers || []);
@@ -50,6 +56,38 @@ export default function EditProductPage() {
   }, [id]);
 
   const update = (key: string, value: string | boolean | null) => setForm(f => ({ ...f, [key]: value }));
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("El archivo debe ser una imagen");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("La imagen no puede superar los 5MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+
+    setUploadingImage(true);
+    try {
+      const result = await uploadImage(file);
+      setForm(f => ({ ...f, imageUrl: result.secure_url }));
+      setImagePreview(result.secure_url);
+    } catch (error) {
+      alert("Error al subir la imagen. Intentá de nuevo.");
+      console.error("Error uploading image:", error);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const margin = form.costPrice && form.salePrice ? calculateMargin(parseFloat(form.costPrice), parseFloat(form.salePrice)) : 0;
   const suggestedPrice = form.costPrice ? calculateSuggestedPrice(parseFloat(form.costPrice), parseFloat(targetMargin)) : 0;
 
@@ -76,6 +114,7 @@ export default function EditProductPage() {
           supplierId: form.supplierId || null,
           expirationDate: form.expirationDate || null,
           batchNumber: form.batchNumber || null,
+          imageUrl: form.imageUrl || null,
         }),
       });
       if (!res.ok) { const d = await res.json(); alert(d.error); return; }
@@ -99,6 +138,76 @@ export default function EditProductPage() {
         <div style={{ background: "white", borderRadius: "12px", padding: "20px", marginBottom: "16px", border: "1px solid #E2E8F0" }}>
           <h2 style={{ fontSize: "15px", fontWeight: "700", color: "#718096", marginBottom: "16px" }}>INFORMACIÓN BÁSICA</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            {/* Image Upload */}
+            <div>
+              <label style={labelStyle}>Imagen del producto</label>
+              <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                <div style={{ 
+                  width: "100px", height: "100px", 
+                  border: "2px dashed #E2E8F0", 
+                  borderRadius: "12px", 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "center",
+                  overflow: "hidden",
+                  background: "#F7FAFC",
+                  flexShrink: 0,
+                }}>
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <span style={{ fontSize: "32px" }}>📷</span>
+                  )}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "10px 16px",
+                    background: uploadingImage ? "#A0AEC0" : "#1E3A5F",
+                    color: "white",
+                    borderRadius: "10px",
+                    cursor: uploadingImage ? "not-allowed" : "pointer",
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    minHeight: "44px",
+                  }}>
+                    {uploadingImage ? "Subiendo..." : "Subir imagen"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handleImageUpload}
+                      style={{ display: "none" }}
+                      disabled={uploadingImage}
+                    />
+                  </label>
+                  <p style={{ fontSize: "12px", color: "#718096", marginTop: "6px" }}>
+                    Formatos: JPG, PNG, WebP. Máximo 5MB.
+                  </p>
+                  {imagePreview && (
+                    <button
+                      type="button"
+                      onClick={() => { setImagePreview(null); setForm(f => ({ ...f, imageUrl: "" })); }}
+                      style={{
+                        marginTop: "8px",
+                        padding: "6px 12px",
+                        background: "#FFF5F5",
+                        color: "#E74C3C",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                        fontWeight: "600",
+                      }}
+                    >
+                      Eliminar imagen
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
             <div>
               <label style={labelStyle}>Nombre del producto *</label>
               <input style={inputStyle} value={form.name} onChange={e => update("name", e.target.value)} required />
